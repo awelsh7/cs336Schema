@@ -19,7 +19,7 @@ passWord VARCHAR(15) NOT NULL,
 userType INTEGER,
 PRIMARY KEY (ruid),
 UNIQUE (netid),
-FOREIGN KEY (userType) REFRENCES UserTypeID(userType)
+FOREIGN KEY (userType) REFERENCES UserTypeID(userType)
 ); <-- add ruid and UserType && Created new table UserTypeID -->
 <-- ANY Thoughts? Before User decides to create account how do we decide what userType they are assigned ? can't allow them to select their own. ->
 
@@ -31,21 +31,40 @@ name VARCHAR(15),
 passWord VARCHAR(15),
 majorid CHAR(3),
 PRIMARY KEY (ruid),
-FOREIGN KEY (ruid) REFRENCES Users(ruid),
-FOREIGN KEY (majorid) REFRENCES Majors(majorid)
+FOREIGN KEY (ruid) REFERENCES Users(ruid),
+FOREIGN KEY (majorid) REFERENCES Majors(majorid)
+);
+
+
+-- I added a table for professors even though it really doesn't have much info, because the description
+-- of the example said one of it's biggest flaws is that "it does not model faculty as seperate entity"
+CREATE TABLE Professors (
+ruid CHAR(9),
+PRIMARY KEY (ruid),
+FOREIGN KEY (ruid) REFERENCES Users(ruid)
+);
+
+CREATE TABLE Teaches (
+ruid CHAR(9),
+cid CHAR(3),
+secNum CHAR(2),
+semester CHAR(2),
+year CHAR(4),
+FOREIGN KEY (ruid) REFERENCES Users(ruid),
+FOREIGN KEY (cid, secNum, semester, year) REFERENCES (Courses)
 );
 
 CREATE TABLE Transcript (
 ruid CHAR(9),
 semester CHAR(2),
 cid CHAR(3),
-year CHAR(2),
+year CHAR(4),
 grade CHAR(2),
 majorid CHAR(3),
 enrolled CHAR(5), <-- University Enrollment -->
 grad CHAR(5) DEFAULT NULL,
 PRIMARY KEY (ruid),
-FOREIGN KEY (ruid) REFRENCES Students(ruid),
+FOREIGN KEY (ruid) REFERENCES Students(ruid),
 FOREIGN KEY (majorid) REFERENCES Majors(majorid)
 )
 
@@ -57,8 +76,8 @@ cid CHAR(3),
 secNum CHAR(2),
 semester CHAR(2),<--format ex:FA -->
 PRIMARY KEY (ruid,cid,secNum,semester),
-FOREIGN KEY (ruid) REFRENCES Students (ruid),
-FOREIGN KEY (cid,secNum,semester,year) REFRENCES Courses);
+FOREIGN KEY (ruid) REFERENCES Students (ruid),
+FOREIGN KEY (cid,secNum,semester,year) REFERENCES Courses);
 
 
 CREATE TABLE Recitation(
@@ -69,8 +88,8 @@ time CHAR(4),
 roomid CHAR(3),
 bldCode CHAR(3),
 PRIMARY KEY (cid,secNum),
-FOREIGN KEY (cid, secNum) REFRENCES Courses(cid, secNum),
-FOREIGN KEY (roomid, bldCode) REFRENCES classRooms(roomid, bldCode)
+FOREIGN KEY (cid, secNum) REFERENCES Courses(cid, secNum),
+FOREIGN KEY (roomid, bldCode) REFERENCES classRooms(roomid, bldCode)
 );
 
 
@@ -100,27 +119,29 @@ PRIMARY KEY (bldCode,roomid)
 );
 
 <-- Need to connect response relationship from User to SPN -->
+-- Should requests have a primary key? Either a new field (requestid) or (cid, secNum, ruid, time)
 CREATE TABLE request(
 	cid CHAR(3),
 	secNum CHAR(2),
 	ruid CHAR(9),
 	time CHAR(15) ,
-	status CHAR(20),
+	status CHAR(20), 
 	reason CHAR(20),
-	response CHAR(20) DEFAULT NULL, <- - If given an spn, itll appear here - ->
+	response CHAR(20) DEFAULT NULL, <-- If given an spn, itll appear here -->
 	FOREIGN KEY (cid, secNum) REFERENCES Courses(cid, secNum),
 	FOREIGN KEY (ruid) REFERENCES Student(ruid)
 );
 
+-- is this table just a list of all the spns the professor has available to give out?
 CREATE TABLE spns (
 	cid CHAR(3).
 	secNum CHAR(2),
 	quantity INTEGER,
-	PRIMARY KEY(cid, secNum)
+	PRIMARY KEY(cid, secNum),
 	FOREIGN KEY(cid, secNum) REFERENCES Course(cid, secNum)
 );
-<- - is it 10 spns per course or 10 per section? needs to be modified if 10 per course - ->
-
+<-- is it 10 spns per course or 10 per section? needs to be modified if 10 per course -->
+-- it's 10 per section, according to the project_req resource
 
 
 
